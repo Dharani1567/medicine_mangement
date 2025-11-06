@@ -1,8 +1,13 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, render_template
 from db_connection import get_db_connection
 from datetime import date, timedelta
 
+
+
 app = Flask(__name__)
+@app.route('/dashboard')
+def dashboard():
+    return render_template('index.html')
 
 # ✅ Root route
 @app.route('/')

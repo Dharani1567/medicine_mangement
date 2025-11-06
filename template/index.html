@@ -1,85 +1,38 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Medicine Expiry & Stock Tracker</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
+{% extends "base.html" %}
+{% block content %}
+<h2>Medicine Management Dashboard</h2>
 
-<body onload="initDashboard()">
+<!-- Alerts Section -->
+<div id="alerts" class="mb-3"></div>
 
-  <!-- Header -->
-  <header>
-    <h1>💊 Medicine Expiry & Stock Tracker</h1>
-    <nav>
-      <a href="index.html">Dashboard</a>
-      <a href="suppliers.html">Suppliers</a>
-      <a href="reports.html">Reports</a>
-      <a href="add_medicine.html">Add Medicine</a>
-    </nav>
-  </header>
+<!-- Summary Cards -->
+<div class="row mb-3">
+  <div class="col">
+    <div class="card"><div class="card-body">Total: <span id="totalCount">0</span></div></div>
+  </div>
+  <div class="col">
+    <div class="card"><div class="card-body">Expired: <span id="expiredCount">0</span></div></div>
+  </div>
+  <div class="col">
+    <div class="card"><div class="card-body">Low Stock: <span id="lowStockCount">0</span></div></div>
+  </div>
+</div>
 
-  <!-- Alerts Section -->
-  <section id="alerts"></section>
+<canvas id="stockChart" width="200" height="200"></canvas>
 
-  <!-- Summary Cards -->
-  <section id="summary">
-    <div class="card">
-      <h3>Total Medicines</h3>
-      <p id="totalCount">0</p>
-    </div>
-    <div class="card">
-      <h3>Expired</h3>
-      <p id="expiredCount">0</p>
-    </div>
-    <div class="card">
-      <h3>Low Stock</h3>
-      <p id="lowStockCount">0</p>
-    </div>
-  </section>
+<!-- Medicine Table -->
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th><th>Name</th><th>Batch</th><th>Expiry</th><th>Qty</th><th>Supplier</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="medicineTable"></tbody>
+</table>
 
-  <!-- Search & Filter -->
-  <section id="search-filter">
-    <input type="text" id="searchBox" placeholder="Search medicine..." onkeyup="searchMedicine()" />
-    <select id="expiryFilter" onchange="filterMedicines()">
-      <option value="">All</option>
-      <option value="expired">Expired</option>
-      <option value="near">Near Expiry</option>
-      <option value="low">Low Stock</option>
-    </select>
-  </section>
-
-  <!-- Medicine Table -->
-  <section id="medicine-list">
-    <table>
-      <thead>
-        <tr>
-          <th>ID</th>
-          <th>Name</th>
-          <th>Batch</th>
-          <th>Expiry</th>
-          <th>Qty</th>
-          <th>Supplier</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody id="medicineTable"></tbody>
-    </table>
-    <button class="add-btn" onclick="window.location.href='add_medicine.html'">➕ Add New Medicine</button>
-  </section>
-
-  <!-- Chart Section -->
-  <section id="chart">
-    <canvas id="stockChart"></canvas>
-  </section>
-
-  <!-- Footer -->
-  <footer>
-    <p>&copy; 2025 Medicine Tracker | Developed by Team Dharani & Co.</p>
-  </footer>
-
-   <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
-</html>
+<!-- Link JS -->
+<script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+<script>
+  initDashboard(); // Run dashboard functions on page load
+</script>
+{% endblock %}

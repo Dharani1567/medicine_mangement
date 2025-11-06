@@ -63,14 +63,23 @@ async function checkAlerts() {
   const alertBox = document.getElementById("alerts");
   alertBox.innerHTML = "";
 
-  if (alerts.length === 0) {
+  const low = alerts.low_stock;
+  const near = alerts.near_expiry;
+
+  if (low.length === 0 && near.length === 0) {
     alertBox.innerHTML = "<p class='no-alert'>✅ All medicines are in good condition.</p>";
   } else {
-    alerts.forEach((a) => {
-      alertBox.innerHTML += `<div class="alert">${a.message}</div>`;
-    });
+    if (low.length > 0) {
+      alertBox.innerHTML += `<h4>⚠️ Low Stock</h4>`;
+      low.forEach((m) => alertBox.innerHTML += `<div>${m.name} (Qty: ${m.quantity})</div>`);
+    }
+    if (near.length > 0) {
+      alertBox.innerHTML += `<h4>⏳ Near Expiry</h4>`;
+      near.forEach((m) => alertBox.innerHTML += `<div>${m.name} (Exp: ${m.expiry_date})</div>`);
+    }
   }
 }
+
 
 // Dashboard Summary
 async function loadSummary() {
