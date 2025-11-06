@@ -1,0 +1,94 @@
+body {
+  font-family: Arial, sans-serif;
+  margin: 20px;
+  background-color: #f4f6f9;
+}
+
+header {
+  text-align: center;
+  background: #007bff;
+  color: white;
+  padding: 15px;
+  border-radius: 10px;
+}
+
+nav a {
+  color: white;
+  margin: 0 10px;
+  text-decoration: none;
+}
+
+nav a:hover {
+  text-decoration: underline;
+}
+
+#alerts {
+  margin: 15px 0;
+}
+
+.alert {
+  background-color: #ffdddd;
+  border: 1px solid #ff9999;
+  padding: 10px;
+  border-radius: 8px;
+  margin-bottom: 5px;
+}
+
+.no-alert {
+  color: green;
+}
+
+#summary {
+  display: flex;
+  justify-content: space-around;
+  margin: 20px 0;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 0 10px #ccc;
+  text-align: center;
+  width: 25%;
+}
+
+#search-filter {
+  text-align: center;
+  margin: 20px 0;
+}
+
+#medicine-list table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+table th, table td {
+  border: 1px solid #ddd;
+  padding: 10px;
+  text-align: center;
+}
+
+tr.expired { background-color: #f8d7da; }
+tr.near-expiry { background-color: #fff3cd; }
+tr.low { background-color: #d1ecf1; }
+
+.add-btn {
+  margin-top: 15px;
+  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.add-btn:hover {
+  background-color: #0056b3;
+}
+
+footer {
+  text-align: center;
+  margin-top: 30px;
+  color: #555;
+}
