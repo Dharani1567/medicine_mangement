@@ -3,6 +3,10 @@ from db_connection import get_db_connection
 from datetime import date, timedelta
 
 
+from flask_cors import CORS
+app = Flask(__name__)
+CORS(app)
+
 
 app = Flask(__name__)
 @app.route('/dashboard')
@@ -51,7 +55,12 @@ def get_medicines():
 # ✅ Add a new medicine
 @app.route('/medicines', methods=['POST'])
 def add_medicine():
-    data = request.json
+    data = request.json or {}
+    required = ['name', 'batch_number', 'expiry_date', 'quantity', 'supplier_id', 'category_id', 'price']
+    missing = [f for f in required if f not in data]
+    if missing:
+        return jsonify({"error": "Missing fields", "missing": missing}), 400
+
     try:
         conn = get_db_connection()
         cur = conn.cursor()
@@ -70,8 +79,10 @@ def add_medicine():
         conn.close()
         return jsonify({"message": "Medicine added successfully", "medicine_id": new_id}), 201
     except Exception as e:
-        print("Error:", e)
-        return jsonify({"error": "Error adding medicine"}), 500
+        import traceback
+        print("❌ Error adding medicine:", e)
+        traceback.print_exc()
+        return jsonify({"error": str(e)}), 500
 
 
 # ✅ Update a medicine

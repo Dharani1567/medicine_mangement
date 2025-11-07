@@ -34,24 +34,64 @@
 </form>
 
 <script>
+const API_BASE = "http://127.0.0.1:5000";
+
 document.getElementById("addForm").addEventListener("submit", async (e) => {
   e.preventDefault();
+
+  // Read inputs explicitly — don't rely on global identifiers
+  const nameEl = document.getElementById("name");
+  const batchEl = document.getElementById("batch_number");
+  const expiryEl = document.getElementById("expiry_date");
+  const qtyEl = document.getElementById("quantity");
+  const supplierEl = document.getElementById("supplier_id");
+  const categoryEl = document.getElementById("category_id");
+  const priceEl = document.getElementById("price");
+
   const data = {
-    name: name.value,
-    batch_number: batch_number.value,
-    expiry_date: expiry_date.value,
-    quantity: parseInt(quantity.value),
-    supplier_id: parseInt(supplier_id.value),
-    category_id: parseInt(category_id.value),
-    price: parseFloat(price.value),
+    name: nameEl.value.trim(),
+    batch_number: batchEl.value.trim(),
+    expiry_date: expiryEl.value, // "YYYY-MM-DD"
+    quantity: parseInt(qtyEl.value, 10) || 0,
+    supplier_id: parseInt(supplierEl.value, 10) || null,
+    category_id: parseInt(categoryEl.value, 10) || null,
+    price: parseFloat(priceEl.value) || 0.0
   };
-  await fetch(`${API_BASE}/medicines`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(data),
-  });
-  alert("Medicine added successfully!");
-  window.location.href = "/medicines_page";
+
+  // Basic client-side validation
+  if (!data.name) {
+    alert("Please enter a medicine name.");
+    nameEl.focus();
+    return;
+  }
+  if (!data.batch_number) {
+    alert("Please enter a batch number.");
+    batchEl.focus();
+    return;
+  }
+
+  try {
+    const res = await fetch(`${API_BASE}/medicines`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data),
+    });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      console.error("❌ Error adding medicine (server):", err);
+      alert("Error adding medicine: " + (err.error || res.statusText || "Unknown error"));
+      return;
+    }
+
+    const result = await res.json();
+    alert("✅ " + result.message);
+    window.location.href = "/medicines_page";
+  } catch (networkErr) {
+    console.error("❌ Network error:", networkErr);
+    alert("Network error — make sure the Flask server is running.");
+  }
 });
 </script>
+
 {% endblock %}

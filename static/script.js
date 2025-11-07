@@ -4,7 +4,7 @@ const API_BASE = "http://127.0.0.1:5000";
 // ✅ Debug confirmation
 console.log("✅ script.js loaded successfully!");
 
-// Initialize dashboard
+// Initialize dashboard (for index page)
 async function initDashboard() {
   console.log("🚀 Initializing dashboard...");
   await getMedicines();
@@ -12,11 +12,12 @@ async function initDashboard() {
   await loadSummary();
 }
 
-// Fetch all medicines
+// ✅ Fetch all medicines
 async function getMedicines() {
   try {
     const response = await fetch(`${API_BASE}/medicines`);
     const data = await response.json();
+    console.log("✅ Fetched medicines:", data);
 
     const tableBody = document.getElementById("medicineTable");
     if (!tableBody) {
@@ -24,6 +25,7 @@ async function getMedicines() {
       return;
     }
 
+    console.log("✅ Table body found. Rendering rows...");
     tableBody.innerHTML = "";
 
     data.forEach((med) => {
@@ -36,7 +38,7 @@ async function getMedicines() {
       else if (diffDays < 30) rowClass = "near-expiry";
       else if (med.quantity < 10) rowClass = "low";
 
-      // ✅ Fixed field names to match Flask response
+      // ✅ Generate table row
       const row = `
         <tr class="${rowClass}">
           <td>${med.medicine_id}</td>
@@ -52,30 +54,38 @@ async function getMedicines() {
         </tr>`;
       tableBody.innerHTML += row;
     });
+
+    console.log("✅ Table rendering complete.");
   } catch (error) {
     console.error("❌ Error fetching medicines:", error);
   }
 }
 
-// Delete a medicine
+// ✅ Delete a medicine
 async function deleteMedicine(id) {
   if (confirm("Are you sure you want to delete this medicine?")) {
-    await fetch(`${API_BASE}/medicines/${id}`, { method: "DELETE" });
-    alert("Medicine deleted!");
-    getMedicines();
+    try {
+      await fetch(`${API_BASE}/medicines/${id}`, { method: "DELETE" });
+      alert("Medicine deleted!");
+      getMedicines();
+    } catch (error) {
+      console.error("❌ Error deleting medicine:", error);
+    }
   }
 }
 
-// Navigate to edit page
+// ✅ Navigate to edit page
 function editMedicine(id) {
   window.location.href = `update_medicine.html?id=${id}`;
 }
 
-// Check for alerts (near expiry or low stock)
+// ✅ Check for alerts (near expiry or low stock)
 async function checkAlerts() {
   try {
     const response = await fetch(`${API_BASE}/alerts`);
     const alerts = await response.json();
+    console.log("✅ Alerts fetched:", alerts);
+
     const alertBox = document.getElementById("alerts");
     if (!alertBox) return;
 
@@ -101,11 +111,12 @@ async function checkAlerts() {
   }
 }
 
-// Dashboard Summary
+// ✅ Dashboard Summary (for charts)
 async function loadSummary() {
   try {
     const res = await fetch(`${API_BASE}/medicines`);
     const data = await res.json();
+    console.log("✅ Summary data fetched:", data);
 
     const total = data.length;
     const expired = data.filter((m) => new Date(m.expiry_date) < new Date()).length;
@@ -115,25 +126,29 @@ async function loadSummary() {
     document.getElementById("expiredCount").textContent = expired;
     document.getElementById("lowStockCount").textContent = low;
 
-    // ✅ Chart.js for stock summary
-    const ctx = document.getElementById("stockChart").getContext("2d");
-    new Chart(ctx, {
-      type: "doughnut",
-      data: {
-        labels: ["Expired", "Low Stock", "Healthy"],
-        datasets: [
-          {
-            data: [expired, low, total - expired - low],
-          },
-        ],
-      },
-    });
+    // ✅ Render chart if element exists
+    const chartCanvas = document.getElementById("stockChart");
+    if (chartCanvas) {
+      const ctx = chartCanvas.getContext("2d");
+      new Chart(ctx, {
+        type: "doughnut",
+        data: {
+          labels: ["Expired", "Low Stock", "Healthy"],
+          datasets: [
+            {
+              data: [expired, low, total - expired - low],
+              backgroundColor: ["#e74c3c", "#f1c40f", "#2ecc71"],
+            },
+          ],
+        },
+      });
+    }
   } catch (error) {
     console.error("❌ Error loading summary:", error);
   }
 }
 
-// Search medicines
+// ✅ Search medicines
 function searchMedicine() {
   const searchValue = document.getElementById("searchBox").value.toLowerCase();
   const rows = document.querySelectorAll("#medicineTable tr");
@@ -144,7 +159,7 @@ function searchMedicine() {
   });
 }
 
-// Filter medicines
+// ✅ Filter medicines
 function filterMedicines() {
   const filter = document.getElementById("expiryFilter").value;
   const rows = document.querySelectorAll("#medicineTable tr");
@@ -161,3 +176,9 @@ function filterMedicines() {
     }
   });
 }
+
+// ✅ Run when page is ready
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("📄 DOM fully loaded. Running getMedicines()...");
+  getMedicines();
+});

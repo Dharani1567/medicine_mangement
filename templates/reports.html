@@ -2,23 +2,43 @@
 {% block content %}
 <h2>Reports & Analytics</h2>
 <canvas id="reportChart" width="400" height="200"></canvas>
+
 <script>
-async function loadReport() {
+const API_BASE = "http://127.0.0.1:5000";
+
+document.addEventListener("DOMContentLoaded", async () => {
   const res = await fetch(`${API_BASE}/medicines`);
   const data = await res.json();
 
+  if (!data.length) {
+    alert("No medicines found. Add medicines first!");
+    return;
+  }
+
   const ctx = document.getElementById("reportChart").getContext("2d");
-  const categories = data.map((m) => m.name);
+  const labels = data.map((m) => m.name);
   const stock = data.map((m) => m.quantity);
 
   new Chart(ctx, {
     type: "bar",
     data: {
-      labels: categories,
-      datasets: [{ label: "Stock", data: stock }],
+      labels: labels,
+      datasets: [
+        {
+          label: "Stock Quantity",
+          data: stock,
+          backgroundColor: "rgba(54, 162, 235, 0.6)",
+          borderColor: "rgba(54, 162, 235, 1)",
+          borderWidth: 1,
+        },
+      ],
+    },
+    options: {
+      scales: {
+        y: { beginAtZero: true },
+      },
     },
   });
-}
-loadReport();
+});
 </script>
 {% endblock %}
