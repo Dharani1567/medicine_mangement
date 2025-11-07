@@ -1,0 +1,55 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Update Medicine</h2>
+<form id="updateForm"></form>
+
+<script>
+const params = new URLSearchParams(window.location.search);
+const id = params.get("id");
+
+async function loadMedicine() {
+  const res = await fetch(`${API_BASE}/medicines`);
+  const data = await res.json();
+  const med = data.find((m) => m.medicine_id == id);
+
+  document.getElementById("updateForm").innerHTML = `
+    <div class="mb-3">
+      <label>Name</label>
+      <input id="name" class="form-control" value="${med.name}">
+    </div>
+    <div class="mb-3">
+      <label>Batch Number</label>
+      <input id="batch_number" class="form-control" value="${med.batch_number}">
+    </div>
+    <div class="mb-3">
+      <label>Expiry Date</label>
+      <input type="date" id="expiry_date" class="form-control" value="${med.expiry_date}">
+    </div>
+    <div class="mb-3">
+      <label>Quantity</label>
+      <input type="number" id="quantity" class="form-control" value="${med.quantity}">
+    </div>
+    <button class="btn btn-primary" onclick="updateMed(event)">Update</button>
+  `;
+}
+
+async function updateMed(e) {
+  e.preventDefault();
+  const body = {
+    name: name.value,
+    batch_number: batch_number.value,
+    expiry_date: expiry_date.value,
+    quantity: quantity.value
+  };
+  await fetch(`${API_BASE}/medicines/${id}`, {
+    method: "PUT",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+  alert("Medicine updated!");
+  window.location.href = "/medicines_page";
+}
+
+loadMedicine();
+</script>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Reports & Analytics</h2>
+<canvas id="reportChart" width="400" height="200"></canvas>
+<script>
+async function loadReport() {
+  const res = await fetch(`${API_BASE}/medicines`);
+  const data = await res.json();
+
+  const ctx = document.getElementById("reportChart").getContext("2d");
+  const categories = data.map((m) => m.name);
+  const stock = data.map((m) => m.quantity);
+
+  new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: categories,
+      datasets: [{ label: "Stock", data: stock }],
+    },
+  });
+}
+loadReport();
+</script>
+{% endblock %}

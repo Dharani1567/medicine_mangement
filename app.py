@@ -206,6 +206,35 @@ def get_users():
         if cur: cur.close()
         if conn: conn.close()
     return jsonify(users)
+# ---------- FRONTEND PAGES ----------
+
+
+
+
+@app.route('/medicines_page')
+def medicines_page():
+    return render_template('medicines.html')
+
+
+@app.route('/add_medicine_page')
+def add_medicine_page():
+    return render_template('add_medicine.html')
+
+
+@app.route('/update_medicine_page')
+def update_medicine_page():
+    return render_template('update_medicine.html')
+
+
+@app.route('/suppliers_page')
+def suppliers_page():
+    return render_template('suppliers.html')
+
+
+@app.route('/reports_page')
+def reports_page():
+    return render_template('reports.html')
+
 
 
 if __name__ == '__main__':

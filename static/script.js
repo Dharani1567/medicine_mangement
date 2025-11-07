@@ -1,7 +1,12 @@
-const API_BASE = "http://127.0.0.1:5000"; // Flask backend URL
+// ✅ Backend API base URL
+const API_BASE = "http://127.0.0.1:5000";
+
+// ✅ Debug confirmation
+console.log("✅ script.js loaded successfully!");
 
 // Initialize dashboard
 async function initDashboard() {
+  console.log("🚀 Initializing dashboard...");
   await getMedicines();
   await checkAlerts();
   await loadSummary();
@@ -9,37 +14,47 @@ async function initDashboard() {
 
 // Fetch all medicines
 async function getMedicines() {
-  const response = await fetch(`${API_BASE}/medicines`);
-  const data = await response.json();
+  try {
+    const response = await fetch(`${API_BASE}/medicines`);
+    const data = await response.json();
 
-  const tableBody = document.getElementById("medicineTable");
-  tableBody.innerHTML = "";
+    const tableBody = document.getElementById("medicineTable");
+    if (!tableBody) {
+      console.warn("⚠️ Table element not found!");
+      return;
+    }
 
-  data.forEach((med) => {
-    const expiryDate = new Date(med.expiry_date);
-    const today = new Date();
-    const diffDays = (expiryDate - today) / (1000 * 3600 * 24);
-    let rowClass = "";
+    tableBody.innerHTML = "";
 
-    if (diffDays < 0) rowClass = "expired";
-    else if (diffDays < 30) rowClass = "near-expiry";
-    else if (med.quantity < 10) rowClass = "low";
+    data.forEach((med) => {
+      const expiryDate = new Date(med.expiry_date);
+      const today = new Date();
+      const diffDays = (expiryDate - today) / (1000 * 3600 * 24);
+      let rowClass = "";
 
-    const row = `
-      <tr class="${rowClass}">
-        <td>${med.id}</td>
-        <td>${med.name}</td>
-        <td>${med.batch_no}</td>
-        <td>${med.expiry_date}</td>
-        <td>${med.quantity}</td>
-        <td>${med.supplier}</td>
-        <td>
-          <button onclick="deleteMedicine(${med.id})">🗑️ Delete</button>
-          <button onclick="editMedicine(${med.id})">✏️ Edit</button>
-        </td>
-      </tr>`;
-    tableBody.innerHTML += row;
-  });
+      if (diffDays < 0) rowClass = "expired";
+      else if (diffDays < 30) rowClass = "near-expiry";
+      else if (med.quantity < 10) rowClass = "low";
+
+      // ✅ Fixed field names to match Flask response
+      const row = `
+        <tr class="${rowClass}">
+          <td>${med.medicine_id}</td>
+          <td>${med.name}</td>
+          <td>${med.batch_number}</td>
+          <td>${med.expiry_date}</td>
+          <td>${med.quantity}</td>
+          <td>${med.supplier_id}</td>
+          <td>
+            <button class="btn btn-danger btn-sm" onclick="deleteMedicine(${med.medicine_id})">🗑️ Delete</button>
+            <button class="btn btn-primary btn-sm" onclick="editMedicine(${med.medicine_id})">✏️ Edit</button>
+          </td>
+        </tr>`;
+      tableBody.innerHTML += row;
+    });
+  } catch (error) {
+    console.error("❌ Error fetching medicines:", error);
+  }
 }
 
 // Delete a medicine
@@ -58,55 +73,64 @@ function editMedicine(id) {
 
 // Check for alerts (near expiry or low stock)
 async function checkAlerts() {
-  const response = await fetch(`${API_BASE}/alerts`);
-  const alerts = await response.json();
-  const alertBox = document.getElementById("alerts");
-  alertBox.innerHTML = "";
+  try {
+    const response = await fetch(`${API_BASE}/alerts`);
+    const alerts = await response.json();
+    const alertBox = document.getElementById("alerts");
+    if (!alertBox) return;
 
-  const low = alerts.low_stock;
-  const near = alerts.near_expiry;
+    alertBox.innerHTML = "";
 
-  if (low.length === 0 && near.length === 0) {
-    alertBox.innerHTML = "<p class='no-alert'>✅ All medicines are in good condition.</p>";
-  } else {
-    if (low.length > 0) {
-      alertBox.innerHTML += `<h4>⚠️ Low Stock</h4>`;
-      low.forEach((m) => alertBox.innerHTML += `<div>${m.name} (Qty: ${m.quantity})</div>`);
+    const low = alerts.low_stock || [];
+    const near = alerts.near_expiry || [];
+
+    if (low.length === 0 && near.length === 0) {
+      alertBox.innerHTML = "<p class='no-alert'>✅ All medicines are in good condition.</p>";
+    } else {
+      if (low.length > 0) {
+        alertBox.innerHTML += `<h4>⚠️ Low Stock</h4>`;
+        low.forEach((m) => alertBox.innerHTML += `<div>${m.name} (Qty: ${m.quantity})</div>`);
+      }
+      if (near.length > 0) {
+        alertBox.innerHTML += `<h4>⏳ Near Expiry</h4>`;
+        near.forEach((m) => alertBox.innerHTML += `<div>${m.name} (Exp: ${m.expiry_date})</div>`);
+      }
     }
-    if (near.length > 0) {
-      alertBox.innerHTML += `<h4>⏳ Near Expiry</h4>`;
-      near.forEach((m) => alertBox.innerHTML += `<div>${m.name} (Exp: ${m.expiry_date})</div>`);
-    }
+  } catch (error) {
+    console.error("❌ Error fetching alerts:", error);
   }
 }
 
-
 // Dashboard Summary
 async function loadSummary() {
-  const res = await fetch(`${API_BASE}/medicines`);
-  const data = await res.json();
+  try {
+    const res = await fetch(`${API_BASE}/medicines`);
+    const data = await res.json();
 
-  const total = data.length;
-  const expired = data.filter((m) => new Date(m.expiry_date) < new Date()).length;
-  const low = data.filter((m) => m.quantity < 10).length;
+    const total = data.length;
+    const expired = data.filter((m) => new Date(m.expiry_date) < new Date()).length;
+    const low = data.filter((m) => m.quantity < 10).length;
 
-  document.getElementById("totalCount").textContent = total;
-  document.getElementById("expiredCount").textContent = expired;
-  document.getElementById("lowStockCount").textContent = low;
+    document.getElementById("totalCount").textContent = total;
+    document.getElementById("expiredCount").textContent = expired;
+    document.getElementById("lowStockCount").textContent = low;
 
-  // Chart.js for stock summary
-  const ctx = document.getElementById("stockChart").getContext("2d");
-  new Chart(ctx, {
-    type: "doughnut",
-    data: {
-      labels: ["Expired", "Low Stock", "Healthy"],
-      datasets: [
-        {
-          data: [expired, low, total - expired - low],
-        },
-      ],
-    },
-  });
+    // ✅ Chart.js for stock summary
+    const ctx = document.getElementById("stockChart").getContext("2d");
+    new Chart(ctx, {
+      type: "doughnut",
+      data: {
+        labels: ["Expired", "Low Stock", "Healthy"],
+        datasets: [
+          {
+            data: [expired, low, total - expired - low],
+          },
+        ],
+      },
+    });
+  } catch (error) {
+    console.error("❌ Error loading summary:", error);
+  }
 }
 
 // Search medicines

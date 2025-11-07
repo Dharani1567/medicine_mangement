@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>💊 All Medicines</h2>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th><th>Name</th><th>Batch</th><th>Expiry</th><th>Qty</th><th>Supplier</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="medicineTable"></tbody>
+</table>
+
+<script>
+  getMedicines();
+</script>
+{% endblock %}

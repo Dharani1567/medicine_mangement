@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block content %}
+<h2 class="mb-3">📊 Medicine Management Dashboard</h2>
+
+<div id="alerts" class="mb-4"></div>
+
+<div class="row text-center mb-4">
+  <div class="col">
+    <div class="card bg-info text-white">
+      <div class="card-body">Total: <span id="totalCount">0</span></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card bg-danger text-white">
+      <div class="card-body">Expired: <span id="expiredCount">0</span></div>
+    </div>
+  </div>
+  <div class="col">
+    <div class="card bg-warning text-dark">
+      <div class="card-body">Low Stock: <span id="lowStockCount">0</span></div>
+    </div>
+  </div>
+</div>
+
+<canvas id="stockChart" width="400" height="200" class="mb-4"></canvas>
+
+<h4>Medicine List</h4>
+<input type="text" id="searchBox" placeholder="Search..." onkeyup="searchMedicine()" class="form-control mb-3">
+<select id="expiryFilter" onchange="filterMedicines()" class="form-select mb-3">
+  <option value="">All</option>
+  <option value="expired">Expired</option>
+  <option value="near">Near Expiry</option>
+  <option value="low">Low Stock</option>
+</select>
+
+<table class="table table-bordered">
+  <thead>
+    <tr>
+      <th>ID</th><th>Name</th><th>Batch</th><th>Expiry</th><th>Qty</th><th>Supplier</th><th>Actions</th>
+    </tr>
+  </thead>
+  <tbody id="medicineTable"></tbody>
+</table>
+
+<script>initDashboard();</script>
+{% endblock %}
