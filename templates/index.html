@@ -41,6 +41,69 @@
   </thead>
   <tbody id="medicineTable"></tbody>
 </table>
+<div id="expiryAlert" class="alert alert-danger d-none" role="alert"></div>
+
 
 <script>initDashboard();</script>
+<script>
+async function loadDashboardStats() {
+  const res = await fetch('/dashboard-stats');
+  const stats = await res.json();
+  document.getElementById('totalCount').textContent = stats.total;
+  document.getElementById('expiringCount').textContent = stats.expiring_soon;
+  document.getElementById('stockCount').textContent = stats.low_stock;
+}
+
+// ✅ Fetch medicines & stats
+async function loadMedicines() {
+  const res = await fetch('/medicines');
+  const data = await res.json();
+  const tbody = document.querySelector('#medicineTable tbody');
+  tbody.innerHTML = '';
+
+  data.forEach(med => {
+    tbody.innerHTML += `
+      <tr>
+        <td>${med.medicine_id}</td>
+        <td>${med.name}</td>
+        <td>${med.batch_number || '-'}</td>
+        <td>${med.expiry_date}</td>
+        <td>${med.quantity}</td>
+        <td>₹${med.price}</td>
+        <td>
+          <button class="btn btn-sm btn-warning" onclick="editMedicine(${med.medicine_id})">Edit</button>
+          <button class="btn btn-sm btn-danger" onclick="deleteMedicine(${med.medicine_id})">Delete</button>
+        </td>
+      </tr>`;
+  });
+
+  // update stats
+  loadDashboardStats();
+}
+</script>
+<script>
+async function showExpiryAlerts() {
+  const res = await fetch('/medicines');
+  const data = await res.json();
+  const today = new Date();
+  const soon = new Date();
+  soon.setDate(today.getDate() + 30);
+  const expiring = data.filter(m => new Date(m.expiry_date) <= soon);
+
+  const alertBox = document.getElementById('expiryAlert');
+  if (expiring.length > 0) {
+    alertBox.textContent = `⚠️ ${expiring.length} medicines are expiring within 30 days!`;
+    alertBox.classList.remove('d-none');
+  } else {
+    alertBox.classList.add('d-none');
+  }
+}
+
+// Call this on page load
+loadMedicines();
+showExpiryAlerts();
+</script>
+
+
 {% endblock %}
+

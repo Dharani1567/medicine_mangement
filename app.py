@@ -7,8 +7,6 @@ from flask_cors import CORS
 app = Flask(__name__)
 CORS(app)
 
-
-app = Flask(__name__)
 @app.route('/dashboard')
 def dashboard():
     return render_template('index.html')
@@ -280,6 +278,36 @@ def delete_supplier(supplier_id):
     cur.close()
     conn.close()
     return jsonify({"message": "Supplier deleted successfully"})
+# 📊 Dashboard stats route
+@app.route('/dashboard-stats', methods=['GET'])
+def get_dashboard_stats():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT expiry_date, quantity FROM medicines;")
+    rows = cur.fetchall()
+    cur.close()
+    conn.close()
+
+    total = len(rows)
+    expiring_soon = 0
+    low_stock = 0
+
+    today = date.today()
+    for row in rows:
+        expiry_date = row[0]
+        quantity = row[1]
+
+        if expiry_date and (expiry_date - today).days <= 30:
+            expiring_soon += 1
+        if quantity is not None and quantity <= 10:
+            low_stock += 1
+
+    return jsonify({
+        "total": total,
+        "expiring_soon": expiring_soon,
+        "low_stock": low_stock
+    })
+
 
 # ---------- FRONTEND PAGES ----------
 
