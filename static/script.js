@@ -182,3 +182,23 @@ document.addEventListener("DOMContentLoaded", () => {
   console.log("📄 DOM fully loaded. Running getMedicines()...");
   getMedicines();
 });
+
+function editMedicine(id) {
+  const newName = prompt("Enter new medicine name:");
+  const newQty = prompt("Enter new quantity:");
+
+  fetch(`/medicines/${id}`, {
+    method: 'PUT',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({
+      name: newName,
+      quantity: newQty
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    alert(data.message);
+    location.reload();
+  });
+}
+

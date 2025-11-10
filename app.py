@@ -217,6 +217,70 @@ def get_users():
         if cur: cur.close()
         if conn: conn.close()
     return jsonify(users)
+# ✅ Get all suppliers
+@app.route('/suppliers', methods=['GET'])
+def get_suppliers():
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT * FROM suppliers ORDER BY supplier_id;")
+    suppliers = [
+        {
+            "supplier_id": row[0],
+            "supplier_name": row[1],
+            "contact_number": row[2],
+            "email": row[3],
+            "address": row[4]
+        }
+        for row in cur.fetchall()
+    ]
+    cur.close()
+    conn.close()
+    return jsonify(suppliers)
+
+
+# ✅ Add a new supplier
+@app.route('/suppliers', methods=['POST'])
+def add_supplier():
+    data = request.get_json()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "INSERT INTO suppliers (supplier_name, contact_number, email, address) VALUES (%s, %s, %s, %s)",
+        (data['supplier_name'], data['contact_number'], data['email'], data['address'])
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Supplier added successfully"}), 201
+
+
+# ✅ Update supplier details
+@app.route('/suppliers/<int:supplier_id>', methods=['PUT'])
+def update_supplier(supplier_id):
+    data = request.get_json()
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute(
+        "UPDATE suppliers SET supplier_name=%s, contact_number=%s, email=%s, address=%s WHERE supplier_id=%s",
+        (data['supplier_name'], data['contact_number'], data['email'], data['address'], supplier_id)
+    )
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Supplier updated successfully"})
+
+
+# ✅ Delete a supplier
+@app.route('/suppliers/<int:supplier_id>', methods=['DELETE'])
+def delete_supplier(supplier_id):
+    conn = get_db_connection()
+    cur = conn.cursor()
+    cur.execute("DELETE FROM suppliers WHERE supplier_id=%s", (supplier_id,))
+    conn.commit()
+    cur.close()
+    conn.close()
+    return jsonify({"message": "Supplier deleted successfully"})
+
 # ---------- FRONTEND PAGES ----------
 
 

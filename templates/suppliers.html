@@ -1,5 +1,289 @@
-{% extends "base.html" %}
-{% block content %}
-<h2>Suppliers</h2>
-<p>Feature coming soon: Manage suppliers here.</p>
-{% endblock %}
+<!-- templates/suppliers.html -->
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Supplier Management</title>
+
+  <!-- Bootstrap CDN (you probably already have it; keep for standalone) -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+
+  <style>
+    /* Make the supplier panel visually prominent ("high") */
+    .hero-card {
+      border-radius: 16px;
+      box-shadow: 0 8px 28px rgba(0,0,0,0.12);
+      padding: 1.25rem;
+      background: linear-gradient(180deg, #ffffff, #f7fbff);
+    }
+    .table-fixed tbody {
+      max-height: 48vh; /* keep table contained and tall enough */
+      overflow-y: auto;
+      display: block;
+    }
+    .table-fixed thead, .table-fixed tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed;
+    }
+    .table-fixed thead {
+      width: calc(100% - 1rem);
+    }
+    .small-muted { font-size: .85rem; color: #6c757d; }
+    .required { color: #d00; }
+  </style>
+</head>
+<body class="bg-light">
+
+<div class="container my-4">
+
+  <div class="hero-card">
+    <div class="d-flex justify-content-between align-items-start mb-3">
+      <div>
+        <h2 class="mb-1">Suppliers</h2>
+        <div class="small-muted">Manage supplier contacts — add, edit or remove suppliers.</div>
+      </div>
+
+      <div>
+        <button id="btnAddSupplier" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#supplierModal">
+          + Add Supplier
+        </button>
+      </div>
+    </div>
+
+    <!-- Table -->
+    <div class="table-responsive">
+      <table class="table table-hover table-fixed align-middle">
+        <thead class="table-light sticky-top">
+          <tr>
+            <th style="width:8%;">ID</th>
+            <th style="width:24%;">Name</th>
+            <th style="width:18%;">Contact</th>
+            <th style="width:22%;">Email</th>
+            <th style="width:20%;">Address</th>
+            <th style="width:8%;">Actions</th>
+          </tr>
+        </thead>
+        <tbody id="suppliersTbody">
+          <!-- rows inserted by JS -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</div>
+
+<!-- Supplier Modal (used for Add & Edit) -->
+<div class="modal fade" id="supplierModal" tabindex="-1" aria-labelledby="supplierModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <form id="supplierForm" class="modal-content needs-validation" novalidate>
+      <div class="modal-header">
+        <h5 class="modal-title" id="supplierModalLabel">Add Supplier</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+
+      <div class="modal-body">
+        <input type="hidden" id="supplierId" />
+
+        <div class="mb-3">
+          <label for="supplierName" class="form-label">Name <span class="required">*</span></label>
+          <input type="text" id="supplierName" class="form-control" required />
+          <div class="invalid-feedback">Supplier name is required.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="supplierContact" class="form-label">Contact Number</label>
+          <input type="text" id="supplierContact" class="form-control" placeholder="+1-555-555-5555" />
+        </div>
+
+        <div class="mb-3">
+          <label for="supplierEmail" class="form-label">Email</label>
+          <input type="email" id="supplierEmail" class="form-control" placeholder="supplier@example.com" />
+          <div class="invalid-feedback">Enter a valid email address.</div>
+        </div>
+
+        <div class="mb-3">
+          <label for="supplierAddress" class="form-label">Address</label>
+          <textarea id="supplierAddress" class="form-control" rows="2"></textarea>
+        </div>
+        <div id="modalAlert" class="alert alert-danger d-none" role="alert"></div>
+      </div>
+
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        <button id="saveSupplierBtn" type="submit" class="btn btn-primary">Save</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Bootstrap JS (Bundle includes Popper) -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+
+<script>
+  // Helper: show temporary alerts inside modal
+  function showModalAlert(msg, show=true) {
+    const alertEl = document.getElementById('modalAlert');
+    if (show) {
+      alertEl.textContent = msg;
+      alertEl.classList.remove('d-none');
+    } else {
+      alertEl.classList.add('d-none');
+      alertEl.textContent = '';
+    }
+  }
+
+  // Fetch and render suppliers
+  async function loadSuppliers() {
+    try {
+      const res = await fetch('/suppliers');
+      if (!res.ok) throw new Error('Failed to fetch suppliers');
+      const data = await res.json();
+      const tbody = document.getElementById('suppliersTbody');
+      tbody.innerHTML = '';
+
+      if (!Array.isArray(data)) {
+        tbody.innerHTML = '<tr><td colspan="6">No suppliers found.</td></tr>';
+        return;
+      }
+
+      data.forEach(s => {
+        const tr = document.createElement('tr');
+
+        tr.innerHTML = `
+          <td class="align-middle">${s.supplier_id ?? ''}</td>
+          <td class="align-middle text-truncate" title="${escapeHtml(s.supplier_name)}">${escapeHtml(s.supplier_name)}</td>
+          <td class="align-middle text-truncate" title="${escapeHtml(s.contact_number ?? '')}">${escapeHtml(s.contact_number ?? '')}</td>
+          <td class="align-middle text-truncate" title="${escapeHtml(s.email ?? '')}">${escapeHtml(s.email ?? '')}</td>
+          <td class="align-middle text-truncate" title="${escapeHtml(s.address ?? '')}">${escapeHtml(s.address ?? '')}</td>
+          <td class="align-middle">
+            <div class="btn-group" role="group">
+              <button class="btn btn-sm btn-outline-primary" onclick="openEdit(${s.supplier_id})">Edit</button>
+              <button class="btn btn-sm btn-outline-danger" onclick="removeSupplier(${s.supplier_id})">Delete</button>
+            </div>
+          </td>
+        `;
+        tbody.appendChild(tr);
+      });
+    } catch (err) {
+      console.error(err);
+      const tbody = document.getElementById('suppliersTbody');
+      tbody.innerHTML = '<tr><td colspan="6">Error loading suppliers.</td></tr>';
+    }
+  }
+
+  // Escape HTML for safe text nodes
+  function escapeHtml(text) {
+    if (!text && text !== 0) return '';
+    return String(text).replace(/[&<>"']/g, function(m) {
+      return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[m]);
+    });
+  }
+
+  // Open modal for Add (blank) or Edit (populate)
+  const supplierModalEl = document.getElementById('supplierModal');
+  const bsSupplierModal = new bootstrap.Modal(supplierModalEl);
+
+  document.getElementById('btnAddSupplier').addEventListener('click', () => {
+    document.getElementById('supplierModalLabel').textContent = 'Add Supplier';
+    document.getElementById('supplierId').value = '';
+    document.getElementById('supplierForm').reset();
+    showModalAlert('', false);
+  });
+
+  async function openEdit(id) {
+    try {
+      const res = await fetch('/suppliers');
+      const suppliers = await res.json();
+      const s = suppliers.find(x => x.supplier_id === id);
+      if (!s) throw new Error('Supplier not found');
+
+      document.getElementById('supplierModalLabel').textContent = 'Edit Supplier';
+      document.getElementById('supplierId').value = s.supplier_id;
+      document.getElementById('supplierName').value = s.supplier_name || '';
+      document.getElementById('supplierContact').value = s.contact_number || '';
+      document.getElementById('supplierEmail').value = s.email || '';
+      document.getElementById('supplierAddress').value = s.address || '';
+
+      showModalAlert('', false);
+      bsSupplierModal.show();
+    } catch (err) {
+      console.error(err);
+      alert('Could not load supplier for editing.');
+    }
+  }
+
+  // Delete supplier
+  async function removeSupplier(id) {
+    if (!confirm('Delete this supplier? This cannot be undone.')) return;
+    try {
+      const res = await fetch(`/suppliers/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const errText = await res.text();
+        throw new Error(errText || 'Delete failed');
+      }
+      await loadSuppliers();
+    } catch (err) {
+      console.error(err);
+      alert('Failed to delete supplier: ' + err.message);
+    }
+  }
+
+  // Form submit handler (Add or Update)
+  document.getElementById('supplierForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const form = e.target;
+
+    // basic client-side validation
+    if (!form.checkValidity()) {
+      form.classList.add('was-validated');
+      return;
+    }
+
+    const id = document.getElementById('supplierId').value;
+    const payload = {
+      supplier_name: document.getElementById('supplierName').value.trim(),
+      contact_number: document.getElementById('supplierContact').value.trim(),
+      email: document.getElementById('supplierEmail').value.trim(),
+      address: document.getElementById('supplierAddress').value.trim()
+    };
+
+    try {
+      let res;
+      if (id) {
+        // Update
+        res = await fetch(`/suppliers/${id}`, {
+          method: 'PUT',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+      } else {
+        // Create
+        res = await fetch('/suppliers', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        });
+      }
+
+      if (!res.ok) {
+        const errBody = await res.json().catch(()=>null);
+        const msg = (errBody && errBody.message) ? errBody.message : await res.text();
+        throw new Error(msg || 'Server error');
+      }
+
+      // Success: close modal and reload table
+      bsSupplierModal.hide();
+      await loadSuppliers();
+    } catch (err) {
+      console.error(err);
+      showModalAlert('Error: ' + (err.message || 'Unable to save supplier'), true);
+    }
+  });
+
+  // Initial load
+  loadSuppliers();
+</script>
+</body>
+</html>
